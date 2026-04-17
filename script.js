@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBookingsForCalendar(new Date());
 
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('bookingDate').min = today;
+    document.getElementById('date').min = today;
 
-    document.getElementById('bookingDate').addEventListener('change', updateAvailableSlots);
+    document.getElementById('date').addEventListener('change', updateAvailableSlots);
     document.getElementById('roomSelect').addEventListener('change', updateAvailableSlots);
-    document.getElementById('startTime').addEventListener('change', updateEndTimeOptions);
+    document.getElementById('start_time').addEventListener('change', updateEndTimeOptions);
     document.getElementById('bookingForm').addEventListener('submit', handleBookingSubmit);
     document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
 
@@ -105,8 +105,8 @@ function selectRoom(roomValue, cardEl) {
 }
 
 function generateTimeSlots() {
-    const startSel = document.getElementById('startTime');
-    const endSel = document.getElementById('endTime');
+    const startSel = document.getElementById('start_time');
+    const endSel = document.getElementById('end_time');
     startSel.innerHTML = '<option value="">เลือกเวลาเริ่มต้น</option>';
     endSel.innerHTML = '<option value="">เลือกเวลาสิ้นสุด</option>';
 
@@ -121,12 +121,12 @@ function generateTimeSlots() {
 }
 
 function updateAvailableSlots() {
-    const date = document.getElementById('bookingDate').value;
+    const date = document.getElementById('date').value;
     const room = document.getElementById('roomSelect').value;
     if (!date || !room) return;
 
     const dayBookings = bookings.filter(b => b.date === date && b.room_id === room && b.status !== 'rejected');
-    Array.from(document.getElementById('startTime').querySelectorAll('option')).slice(1).forEach(opt => {
+    Array.from(document.getElementById('start_time').querySelectorAll('option')).slice(1).forEach(opt => {
         const taken = dayBookings.some(b => opt.value >= b.start_time && opt.value < b.end_time);
         opt.disabled = taken;
         opt.style.color = taken ? '#ef4444' : '';
@@ -135,9 +135,9 @@ function updateAvailableSlots() {
 }
 
 function updateEndTimeOptions() {
-    const start = document.getElementById('startTime').value;
+    const start = document.getElementById('start_time').value;
     if (!start) return;
-    Array.from(document.getElementById('endTime').querySelectorAll('option')).slice(1).forEach(opt => {
+    Array.from(document.getElementById('end_time').querySelectorAll('option')).slice(1).forEach(opt => {
         opt.disabled = opt.value <= start;
     });
 }
