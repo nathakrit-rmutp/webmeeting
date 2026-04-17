@@ -63,30 +63,24 @@ setInterval(() => {
     }
 }, 10000);
 
-function apiGetJSONP(url) {
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        const callbackName = 'jsonp_cb_' + Date.now();
-
-        window[callbackName] = function(data) {
-            resolve(data);
-            delete window[callbackName];
-            script.remove();
-        };
-
-        script.src = `${url}&callback=${callbackName}`;
-        script.onerror = () => {
-            resolve({ ok: false, error: 'Network error' });
-            delete window[callbackName];
-            script.remove();
-        };
-        document.body.appendChild(script);
-    });
-}
-
 async function apiPost(body = {}) {
-    const url = API_URL + '?data=' + encodeURIComponent(JSON.stringify(body));
-    return apiGetJSONP(url);
+    try {
+        const res = await fetch('http://localhost:3000/api', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const text = await res.text();
+        // Google Apps Script อาจส่งกลับเป็น string หรือ JSON
+        try {
+            return JSON.parse(text);
+        } catch {
+            return { ok: false, error: text };
+        }
+    } catch (err) {
+        console.error('API Error:', err);
+        return { ok: false, error: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
+    }
 }
 
 function showSection(section) {
