@@ -10,20 +10,20 @@ let chartStatusInstance = null;
 let chartRoomInstance = null;
 
 // Theme Management
-const themeToggleBtn = document.getElementById('themeToggle');
 const htmlElement = document.documentElement;
 let isDark = localStorage.getItem('theme') === 'dark';
+const themeToggleBtn = document.getElementById('themeToggle');
 
 function updateTheme() {
     if (isDark) {
         htmlElement.classList.add('dark');
         document.body.classList.add('dark');
-        themeToggleBtn.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>';
+        if (themeToggleBtn) themeToggleBtn.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>';
         localStorage.setItem('theme', 'dark');
     } else {
         htmlElement.classList.remove('dark');
         document.body.classList.remove('dark');
-        themeToggleBtn.innerHTML = '<i data-lucide="moon" class="w-5 h-5"></i>';
+        if (themeToggleBtn) themeToggleBtn.innerHTML = '<i data-lucide="moon" class="w-5 h-5"></i>';
         localStorage.setItem('theme', 'light');
     }
     // ดักจับ error กรณีที่ lucide โหลดไม่ขึ้นจะได้ไม่ทำให้สคริปต์หยุดทำงาน
@@ -31,10 +31,12 @@ function updateTheme() {
     if (isAdminLoggedIn) updateAdminStats();
 }
 
-themeToggleBtn.addEventListener('click', () => {
-    isDark = !isDark;
-    updateTheme();
-});
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        isDark = !isDark;
+        updateTheme();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     updateTheme();
@@ -339,7 +341,7 @@ function updateAdminStats() {
     const rejected = bookings.filter(b => b.status === 'rejected').length;
     document.getElementById('statPending').textContent  = pending;
     document.getElementById('statApproved').textContent = approved;
-    document.getElementById('statRejected').textContent = rejected;
+    if (document.getElementById('statRejected')) document.getElementById('statRejected').textContent = rejected;
     document.getElementById('statTotal').textContent    = bookings.length;
     
     renderDashboardCharts(pending, approved, rejected);
