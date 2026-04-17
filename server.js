@@ -27,11 +27,21 @@ function overlap(aStart, aEnd, bStart, bEnd) {
     return !(aEnd <= bStart || aStart >= bEnd);
 }
 
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin123';
 const store = loadData();
 
 app.post('/api', (req, res) => {
     const body = req.body;
     const action = body.action;
+
+    if (action === 'adminLogin') {
+        const { user, pass } = body.data || {};
+        if (user === ADMIN_USER && pass === ADMIN_PASS) {
+            return res.json({ ok: true });
+        }
+        return res.json({ ok: false, error: 'invalid credentials' });
+    }
 
     if (action === 'saveBooking') {
         const data = body.data;

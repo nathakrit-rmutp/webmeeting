@@ -1,0 +1,20 @@
+{
+  "bookings": [
+    {
+      "id": 1,
+      "date": "2026-04-20",
+      "meeting_title": "test",
+      "room_id": "3",
+      "start_time": "11:00",
+      "end_time": "11:45",
+      "booker": "test",
+      "phone": "0987654321",
+      "email": "test@gmail.com",
+      "equipment": "จอโปรเจ็คเตอร์",
+      "drinks": "น้ำเปล่า",
+      "documents": "",
+      "status": "pending_lv1"
+    }
+  ],
+  "nextId": 2
+}
