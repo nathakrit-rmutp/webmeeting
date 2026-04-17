@@ -58,11 +58,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i> วันที่ต้องการจอง <span class="text-red-500">*</span></label>
-                            <input type="date" id="bookingDate" class="form-input" required>
+                            <input type="date" id="date" class="form-input" required>
                         </div>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="tag" class="w-4 h-4 text-gray-500"></i> หัวข้อการประชุม <span class="text-red-500">*</span></label>
-                            <input type="text" id="meetingTitle" class="form-input" placeholder="กรอกหัวข้อการประชุม" required>
+                            <input type="text" id="meeting_title" class="form-input" placeholder="กรอกหัวข้อการประชุม" required>
                         </div>
                     </div>
  
@@ -111,13 +111,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="clock" class="w-4 h-4 text-gray-500"></i> เวลาเริ่มต้น <span class="text-red-500">*</span></label>
-                            <select id="startTime" class="form-input" required>
+                            <select id="start_time" class="form-input" required>
                                 <option value="">เลือกเวลาเริ่มต้น</option>
                             </select>
                         </div>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="clock" class="w-4 h-4 text-gray-500"></i> เวลาสิ้นสุด <span class="text-red-500">*</span></label>
-                            <select id="endTime" class="form-input" required>
+                            <select id="end_time" class="form-input" required>
                                 <option value="">เลือกเวลาสิ้นสุด</option>
                             </select>
                         </div>

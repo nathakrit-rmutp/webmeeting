@@ -98,7 +98,8 @@ function showSection(section) {
 function selectRoom(roomValue, cardEl) {
     document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
     cardEl.classList.add('selected');
-    document.getElementById('roomSelect').value = roomValue;
+    // Store room ID (1, 2, 3) instead of full room name
+    document.getElementById('roomSelect').value = cardEl.dataset.room;
     document.getElementById('roomError').classList.add('hidden');
     updateAvailableSlots();
 }
@@ -155,14 +156,14 @@ async function handleBookingSubmit(e) {
     const drinks = Array.from(document.querySelectorAll('input[name="drinks"]:checked')).map(cb => cb.value);
 
     const data = {
-        date: document.getElementById('bookingDate').value,
-        meeting_title: document.getElementById('meetingTitle').value,
+        date: document.getElementById('date').value,
+        meeting_title: document.getElementById('meeting_title').value,
         room_id: room,
-        start_time: document.getElementById('startTime').value,
-        end_time: document.getElementById('endTime').value,
-        booker: document.getElementById('bookerName').value,
-        phone: document.getElementById('phoneNumber').value,
-        email: document.getElementById('emailAddress').value,
+        start_time: document.getElementById('start_time').value,
+        end_time: document.getElementById('end_time').value,
+        booker: document.getElementById('booker').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
         equipment: equipment.join(', '),
         drinks: drinks.join(', '),
         documents: document.getElementById('documents').value,
