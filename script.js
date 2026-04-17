@@ -1,5 +1,5 @@
 // เปลี่ยน URL นี้เป็น Web App URL จาก Google Apps Script ของคุณ
-const API_URL = 'https://script.google.com/macros/s/AKfycby7pR-nGoocYlj7zV5xrTZ6HanhyCe3y2QfnqbmGmFoz1phC9gYcwoGc0WtMvNHNznFRA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwq70-vF_Na5-71yyqGvfDKY6d3PwZhvgJ2dGjbTFF3RjzJHLA79XFqy3eESlZ2LJngrg/exec';
 
 let bookings = JSON.parse(localStorage.getItem('cachedBookings')) || [];
 let currentDate = new Date();
@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('input', e => { if (e.target.id === 'searchBookings') filterBookings(); });
     document.addEventListener('change', e => { if (e.target.id === 'filterRoom' || e.target.id === 'filterStatus') filterBookings(); });
 });
+
+// Polling for calendar updates every 10 seconds
+setInterval(() => {
+    if (currentSection === 'calendar') {
+        loadBookingsForCalendar(new Date());
+    }
+}, 10000);
 
 async function apiPost(body = {}) {
     const res = await fetch(API_URL, {
@@ -148,7 +155,7 @@ async function handleBookingSubmit(e) {
         equipment: equipment.join(', '),
         drinks: drinks.join(', '),
         documents: document.getElementById('documents').value,
-        status: 'pending'
+        status: 'pending_lv1'
     };
 
     try {
@@ -220,7 +227,7 @@ function generateCalendar() {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             // ไม่แสดงสถานะ rejected ในปฏิทิน
             const dayBookings = bookings.filter(b => b.date === dateStr && b.status !== 'rejected');
-            const hasPending  = dayBookings.some(b => b.status === 'pending');
+            const hasPending  = dayBookings.some(b => b.status.includes('pending'));
             const hasApproved = dayBookings.some(b => b.status === 'approved');
 
             const el = document.createElement('div');
@@ -270,7 +277,7 @@ function showBookingModal(dateStr, dayBookings) {
                         <span class="font-bold text-sm">รายการที่ ${i+1}</span>
                         <span class="badge ${b.status === 'approved' ? 'badge-approved' : 'badge-pending'}">
                             <i data-lucide="${b.status === 'approved' ? 'check-circle' : 'clock'}" class="w-3 h-3"></i> 
-                            ${b.status === 'approved' ? 'อนุมัติแล้ว' : 'รออนุมัติ'}
+                            ${b.status === 'approved' ? 'อนุมัติแล้ว' : b.status === 'pending_lv1' ? 'รออนุมัติ ระดับ 1' : b.status === 'pending_lv2' ? 'รออนุมัติ ระดับ 2' : 'รออนุมัติ'}
                         </span>
                     </div>
                     <div class="grid grid-cols-1 gap-2 text-sm">
@@ -336,7 +343,7 @@ function loadBookingsList() {
 }
 
 function updateAdminStats() {
-    const pending  = bookings.filter(b => b.status === 'pending').length;
+    const pending  = bookings.filter(b => b.status.includes('pending')).length;
     const approved = bookings.filter(b => b.status === 'approved').length;
     const rejected = bookings.filter(b => b.status === 'rejected').length;
     document.getElementById('statPending').textContent  = pending;
@@ -407,12 +414,12 @@ function renderBookingsList(list) {
     }
 
     container.innerHTML = sorted.map(b => {
-        const isPending = b.status === 'pending';
+        const isPending = b.status.includes('pending');
         const isApproved = b.status === 'approved';
         const isRejected = b.status === 'rejected';
         
         let badgeHTML = '';
-        if(isPending) badgeHTML = `<span class="badge badge-pending"><i data-lucide="clock" class="w-3 h-3"></i> รออนุมัติ</span>`;
+        if(isPending) badgeHTML = `<span class="badge badge-pending"><i data-lucide="clock" class="w-3 h-3"></i> ${b.status === 'pending_lv1' ? 'รออนุมัติ ระดับ 1' : b.status === 'pending_lv2' ? 'รออนุมัติ ระดับ 2' : 'รออนุมัติ'}</span>`;
         else if(isApproved) badgeHTML = `<span class="badge badge-approved"><i data-lucide="check-circle" class="w-3 h-3"></i> อนุมัติแล้ว</span>`;
         else badgeHTML = `<span class="badge badge-rejected"><i data-lucide="x-circle" class="w-3 h-3"></i> ไม่อนุมัติ</span>`;
 
@@ -460,17 +467,43 @@ function renderBookingsList(list) {
 }
 
 async function approveBooking(id, email, booker, date, startTime, endTime, room, title) {
-    if (!confirm(`ยืนยันการอนุมัติห้องประชุม\nระบบจะส่งอีเมลไปยัง ${email} และลงปฏิทิน Calendar อัตโนมัติ`)) return;
+
+    const booking = bookings.find(b => b.id === id);
+
+    if (!booking || !booking.status.includes('pending')) {
+        alert("รายการนี้ถูกดำเนินการแล้ว");
+        return;
+    }
+
+    if (!confirm(`ยืนยันการอนุมัติ\nส่ง email + calendar`)) return;
+
     try {
-        const result = await apiPost({ action: 'approveBooking', id, email, booker, date, startTime, endTime, room, meeting_title: title });
+        const result = await apiPost({
+            action: 'approveBooking',
+            id, email, booker, date, startTime, endTime, room, meeting_title: title
+        });
+
         if (result.ok) {
-            showAlert('อนุมัติเรียบร้อย! ส่งอีเมล และลง Calendar แล้ว', 'success');
-            const b = bookings.find(b => b.id === id);
-            if (b) b.status = 'approved';
+
+            // 🔥 sync กับ GAS response
+            if (result.level === 2) {
+                booking.status = 'pending_lv2';
+                showAlert('อนุมัติระดับ 1 แล้ว', 'success');
+            } else if (result.level === "final") {
+                booking.status = 'approved';
+                showAlert('อนุมัติสำเร็จ', 'success');
+            }
+
             localStorage.setItem('cachedBookings', JSON.stringify(bookings));
-            updateAdminStats(); renderBookingsList(bookings);
-        } else { showAlert(result.error || 'เกิดข้อผิดพลาดในการอนุมัติ', 'error'); }
-    } catch (err) { showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error'); }
+
+            // 🔥 reload จริง
+            await loadBookingsForCalendar(new Date());
+
+        }
+
+    } catch {
+        showAlert('error', 'error');
+    }
 }
 
 async function rejectBooking(id, email, booker, date, startTime, endTime, room) {
@@ -479,10 +512,14 @@ async function rejectBooking(id, email, booker, date, startTime, endTime, room) 
         const result = await apiPost({ action: 'rejectBooking', id, email, booker, date, startTime, endTime, room });
         if (result.ok) {
             showAlert('บันทึกไม่อนุมัติ และส่งอีเมลแจ้งผู้จองเรียบร้อย', 'success');
-            const b = bookings.find(b => b.id === id);
-            if (b) b.status = 'rejected';
-            localStorage.setItem('cachedBookings', JSON.stringify(bookings));
-            updateAdminStats(); renderBookingsList(bookings);
+            // ตั้ง status เป็น rejected ตาม Backend
+            const booking = bookings.find(b => b.id === id);
+            if (booking) {
+                booking.status = 'rejected';
+                localStorage.setItem('cachedBookings', JSON.stringify(bookings));
+            }
+            // โหลดข้อมูลใหม่จาก Backend
+            await loadBookingsForCalendar(new Date());
         } else { showAlert(result.error || 'เกิดข้อผิดพลาดในการทำรายการ', 'error'); }
     } catch (err) { showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error'); }
 }
@@ -493,9 +530,8 @@ async function confirmDeleteBooking(id) {
         const result = await apiPost({ action: 'deleteBooking', id });
         if (result.ok) {
             showAlert('ลบการจองเรียบร้อย', 'success');
-            bookings = bookings.filter(b => b.id !== id);
-            localStorage.setItem('cachedBookings', JSON.stringify(bookings));
-            updateAdminStats(); renderBookingsList(bookings);
+            // โหลดข้อมูลใหม่จาก Backend แทนการลบจาก array เอง
+            await loadBookingsForCalendar(new Date());
         } else { showAlert(result.error || 'ลบไม่สำเร็จ', 'error'); }
     } catch (err) { showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error'); }
 }
