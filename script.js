@@ -63,13 +63,30 @@ setInterval(() => {
     }
 }, 10000);
 
-async function apiPost(body = {}) {
-    const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(body)
+function apiGetJSONP(url) {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        const callbackName = 'jsonp_cb_' + Date.now();
+
+        window[callbackName] = function(data) {
+            resolve(data);
+            delete window[callbackName];
+            script.remove();
+        };
+
+        script.src = `${url}&callback=${callbackName}`;
+        script.onerror = () => {
+            resolve({ ok: false, error: 'Network error' });
+            delete window[callbackName];
+            script.remove();
+        };
+        document.body.appendChild(script);
     });
-    return res.json();
+}
+
+async function apiPost(body = {}) {
+    const url = API_URL + '?data=' + encodeURIComponent(JSON.stringify(body));
+    return apiGetJSONP(url);
 }
 
 function showSection(section) {
