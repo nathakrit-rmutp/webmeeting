@@ -65,18 +65,12 @@ setInterval(() => {
 
 async function apiPost(body = {}) {
     try {
-        const res = await fetch('http://localhost:3000/api', {
+        const res = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        const text = await res.text();
-        // Google Apps Script อาจส่งกลับเป็น string หรือ JSON
-        try {
-            return JSON.parse(text);
-        } catch {
-            return { ok: false, error: text };
-        }
+        return await res.json();
     } catch (err) {
         console.error('API Error:', err);
         return { ok: false, error: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
