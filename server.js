@@ -22,8 +22,7 @@ app.post('/api', async (req, res) => {
         });
 
         const text = await response.text();
-
-        res.send(text); // 🔥 ส่งกลับไป frontend
+        res.send(text);
 
     } catch (err) {
         console.error(err);
