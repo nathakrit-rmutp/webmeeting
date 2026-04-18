@@ -462,7 +462,7 @@ function renderBookingsList(list) {
                     ${b.equipment ? `<div class="flex items-start gap-2"><i data-lucide="monitor" class="w-4 h-4 text-gray-400 mt-0.5"></i> <span>${b.equipment}</span></div>` : ''}
                     ${b.drinks ? `<div class="flex items-start gap-2"><i data-lucide="coffee" class="w-4 h-4 text-gray-400 mt-0.5"></i> <span>${b.drinks}</span></div>` : ''}
                 </div>
-                <div class="flex flex-col sm:flex-row gap-2">
+                 <div class="flex flex-col sm:flex-row gap-2">
                     ${isPending ? `
                         <button class="btn-action btn-approve flex-1 py-2.5" onclick="approveBooking('${b.id}', '${b.email}', '${b.booker}', '${b.date}', '${b.start_time}', '${b.end_time}', '${b.room_id}', '${b.meeting_title}')">
                             <i data-lucide="check-circle-2" class="w-4 h-4"></i> อนุมัติการจอง
