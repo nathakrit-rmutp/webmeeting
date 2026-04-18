@@ -372,6 +372,74 @@
         <div id="alertMessage" class="flex-1"></div>
     </div>
  
-    <script src="script.js"></script>
+    <script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwDD-VuqMZFI_zlsqMDOoD0kI9tjOXMyZ6LXfd26mZFE8-8XGaMcbtDheTV_XMzUJhRlg/exec"; // 🔥 ใส่ URL จริง
+
+// เลือกห้อง
+function selectRoom(room, el) {
+    document.getElementById('roomSelect').value = room;
+
+    document.querySelectorAll('.room-card').forEach(c => {
+        c.classList.remove('ring-2','ring-blue-500');
+    });
+
+    el.classList.add('ring-2','ring-blue-500');
+}
+
+// submit form
+document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const room = document.getElementById('roomSelect').value;
+
+    if (!room) {
+        document.getElementById('roomError').classList.remove('hidden');
+        return;
+    }
+
+    const alertBox = document.getElementById('alert');
+    const msg = document.getElementById('alertMessage');
+
+    alertBox.classList.remove('hidden');
+    msg.innerText = "กำลังส่งข้อมูล...";
+
+    const equipment = [...document.querySelectorAll('input[name="equipment"]:checked')].map(e => e.value);
+    const drinks = [...document.querySelectorAll('input[name="drinks"]:checked')].map(e => e.value);
+
+    const data = {
+        date: document.getElementById('date').value,
+        title: document.getElementById('meeting_title').value,
+        room: room,
+        start: document.getElementById('start_time').value,
+        end: document.getElementById('end_time').value,
+        booker: document.getElementById('booker').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        equipment: equipment.join(", "),
+        drinks: drinks.join(", "),
+        note: document.getElementById('documents').value
+    };
+
+    console.log("SEND:", data);
+
+    try {
+        const res = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+
+        const text = await res.text();
+        console.log("RESPONSE:", text);
+
+        msg.innerText = "✅ ส่งคำขอสำเร็จ";
+
+        document.getElementById('bookingForm').reset();
+
+    } catch (err) {
+        console.error(err);
+        msg.innerText = "❌ ส่งไม่สำเร็จ";
+    }
+});
+</script>
 </body>
 </html>
