@@ -3,7 +3,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwDD-VuqMZFI_zlsqMDOoD0
 
 let bookings = JSON.parse(localStorage.getItem('cachedBookings')) || [];
 let currentDate = new Date();
-let currentSection = 'booking';
+let currentSection = 'bookings';
 let isAdminLoggedIn = false;
 
 let chartStatusInstance = null;
