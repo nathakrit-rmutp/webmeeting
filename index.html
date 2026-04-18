@@ -431,6 +431,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     try {
         const res = await fetch(GAS_URL, {
     method: "POST",
+    mode: "no-cors",
     headers: {
         "Content-Type": "application/json"
     },
