@@ -1,5 +1,5 @@
 // เปลี่ยน URL นี้เป็น Web App URL จาก Google Apps Script ของคุณ
-const API_URL = 'https://script.google.com/macros/s/AKfycbwq70-vF_Na5-71yyqGvfDKY6d3PwZhvgJ2dGjbTFF3RjzJHLA79XFqy3eESlZ2LJngrg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwDD-VuqMZFI_zlsqMDOoD0kI9tjOXMyZ6LXfd26mZFE8-8XGaMcbtDheTV_XMzUJhRlg/exec';
 
 let bookings = JSON.parse(localStorage.getItem('cachedBookings')) || [];
 let currentDate = new Date();
