@@ -424,8 +424,11 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
     try {
         const res = await fetch(GAS_URL, {
-            method: "POST",
-            body: JSON.stringify(data)
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
         });
 
         const text = await res.text();
