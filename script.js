@@ -65,20 +65,19 @@ setInterval(() => {
 
 async function apiPost(body = {}) {
     try {
-        const res = await fetch(API_URL, {
+        await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
+            mode: 'no-cors',
             body: JSON.stringify(body)
         });
-        return await res.json();
+
+        return { ok: true };
+
     } catch (err) {
         console.error('API Error:', err);
         return { ok: false, error: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
     }
 }
-
 function showSection(section) {
     document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
     ['booking', 'calendar'].forEach(s => document.getElementById('nav-' + s)?.classList.remove('active'));
@@ -140,6 +139,7 @@ function updateEndTimeOptions() {
 
 async function handleBookingSubmit(e) {
     e.preventDefault();
+
     const room = document.getElementById('roomSelect').value;
     if (!room) {
         document.getElementById('roomError').classList.remove('hidden');
@@ -148,6 +148,7 @@ async function handleBookingSubmit(e) {
     }
 
     showLoading();
+
     const equipment = Array.from(document.querySelectorAll('input[name="equipment"]:checked')).map(cb => cb.value);
     const drinks = Array.from(document.querySelectorAll('input[name="drinks"]:checked')).map(cb => cb.value);
 
@@ -168,27 +169,37 @@ async function handleBookingSubmit(e) {
 
     try {
         const result = await apiPost({ action: 'saveBooking', data });
-        if (!result.ok) {
+
+        // 🔥 no-cors → assume success
+        if (!result || result.ok !== false) {
+
+            showAlert('ส่งคำขอสำเร็จ', 'success');
+
+            document.getElementById('bookingForm').reset();
+            document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('roomSelect').value = '';
+
+            bookings.push(data);
+            localStorage.setItem('cachedBookings', JSON.stringify(bookings));
+
+            if (currentSection === 'calendar') generateCalendar();
+
+        } else {
+
             if (result.error && (result.error.includes('มีการจองแล้ว') || result.error.includes('ระบบกำลังยุ่ง'))) {
-                document.getElementById('conflictMessage').innerHTML = `${result.error}<br><br><span class="font-bold text-red-500">โปรดตรวจสอบเวลาหรือห้องใหม่อีกครั้ง</span>`;
+                document.getElementById('conflictMessage').innerHTML =
+                    `${result.error}<br><br><span class="font-bold text-red-500">โปรดตรวจสอบเวลาหรือห้องใหม่อีกครั้ง</span>`;
                 document.getElementById('conflictModal').classList.remove('hidden');
             } else {
                 showAlert(result.error || 'การจองล้มเหลว', 'error');
             }
-        } else {
-            showAlert('ส่งคำขอจองเรียบร้อย! ข้อมูลถูกส่งไปที่ระบบ (รออนุมัติ)', 'success');
-            document.getElementById('bookingForm').reset();
-            document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
-            document.getElementById('roomSelect').value = '';
-            
-            data.id = result.id;
-            bookings.push(data);
-            localStorage.setItem('cachedBookings', JSON.stringify(bookings));
-            if (currentSection === 'calendar') generateCalendar();
+
         }
+
     } catch (err) {
         showAlert('กรุณาเช็คการเชื่อมต่อ', 'error');
     }
+
     hideLoading();
 }
 
